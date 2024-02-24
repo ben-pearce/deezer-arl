@@ -74,7 +74,7 @@ class Manager:
         assert isinstance(await provider.fetch(), list)
 
         if not os.path.isdir(DATA_DIR):
-            os.mkdir(DATA_DIR, '0755')
+            os.mkdir(DATA_DIR, 755)
 
         try:
             with open(Manager.ProvidersPath, 'r', encoding="utf-8") as f:
@@ -104,7 +104,7 @@ class Manager:
         del providers[index]
 
         if not os.path.isdir(DATA_DIR):
-            os.mkdir(DATA_DIR, '0755')
+            os.mkdir(DATA_DIR, 755)
 
         with open(Manager.ProvidersPath, 'w', encoding="utf-8") as f:
             json.dump(providers, f, indent=2)

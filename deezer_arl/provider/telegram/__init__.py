@@ -47,7 +47,7 @@ class Telegram(Provider):
 
     async def fetch(self) -> typing.List[str]:
         if not os.path.isdir(DATA_DIR):
-            os.mkdir(DATA_DIR, '0755')
+            os.mkdir(DATA_DIR, 755)
 
         async with TelegramClient(
             os.path.join(DATA_DIR, self._api_id),

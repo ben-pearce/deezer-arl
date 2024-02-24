@@ -80,7 +80,7 @@ class Validator:
         sem = threading.Semaphore(max_requests)
 
         if not os.path.isdir(DATA_DIR):
-            os.mkdir(DATA_DIR, '0755')
+            os.mkdir(DATA_DIR, 755)
 
         try:
             with open(Validator.ValidatedPath, 'r', encoding="utf-8") as f:

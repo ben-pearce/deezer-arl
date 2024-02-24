@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='deezer-arl',
-    version='1.0.1',
+    version='1.0.2',
     description='Deezer ARL Scraper',
     author='Ben Pearce',
     author_email='me@benpearce.io',

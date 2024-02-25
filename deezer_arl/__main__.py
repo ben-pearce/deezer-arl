@@ -1,6 +1,8 @@
 import asyncio
 import argparse
 import logging
+import itertools
+import re
 
 from deezer_arl import Scraper, Validator
 from deezer_arl.provider import Providers, Manager as ProviderManager
@@ -66,6 +68,18 @@ async def main():
         type=int,
         help="Number of unique ARLs to fetch"
     )
+    parser_fetch.add_argument(
+        '-o', '--output', 
+        type=str,
+        action='append',
+        help='Output ARLs to file instead of the console'
+    )
+    parser_fetch.add_argument(
+        '-u', '--update',
+        type=str,
+        action='append',
+        help='Find and update ARLs in file'
+    )
 
     subparsers.add_parser('clean', help='Clean validated ARLs')
 
@@ -109,8 +123,23 @@ async def main():
 
     if args.command == 'fetch':
         arls = Validator.fetch(args.count)
-        for arl in arls:
-            print(arl)
+
+        if not args.output and not args.update:
+            for arl in arls:
+                print(arl)
+
+        if args.output:
+            for file in args.output:
+                with open(file, 'w', encoding="utf-8") as f:
+                    f.writelines(arls)
+
+        if args.update:
+            circle = itertools.cycle(arls)
+            for file in args.update:
+                with open(file, 'r', encoding="utf-8") as fin:
+                    data = re.sub(r'([a-f0-9]{192})', lambda _: next(circle), fin.read())
+                with open(file, 'w', encoding="utf-8") as fout:
+                    fout.write(data)
 
     if args.command == 'pull':
         m = ProviderManager()

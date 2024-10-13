@@ -75,12 +75,6 @@ async def main():
         action='append',
         help='Output ARLs to file instead of the console'
     )
-    parser_fetch.add_argument(
-        '-u', '--update',
-        type=str,
-        action='append',
-        help='Find and update ARLs in file'
-    )
 
     parser_consume = subparsers.add_parser('consume', help='Specify an ARL consumer to use')
     parser_consume.add_argument(
@@ -161,14 +155,6 @@ async def main():
             for file in args.output:
                 with open(file, 'w', encoding="utf-8") as f:
                     f.writelines(arls)
-
-        if args.update:
-            circle = itertools.cycle(arls)
-            for file in args.update:
-                with open(file, 'r', encoding="utf-8") as fin:
-                    data = re.sub(r'([a-f0-9]{192})', lambda _: next(circle), fin.read())
-                with open(file, 'w', encoding="utf-8") as fout:
-                    fout.write(data)
 
     if args.command == 'pull':
         m = ProviderManager()

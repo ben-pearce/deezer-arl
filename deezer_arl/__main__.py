@@ -1,8 +1,6 @@
 import asyncio
 import argparse
 import logging
-import itertools
-import re
 
 from deezer_arl import Scraper, Validator
 from deezer_arl.provider import Providers, Manager as ProviderManager

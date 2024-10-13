@@ -148,6 +148,7 @@ class Validator:
                         'expiry': str(now + timedelta(seconds=cache_expiry))
                     }
                 else:
+                    validated.pop(arl, None)
                     invalidated[arl] = {
                         'expiry': str(now + timedelta(days=30))
                     }

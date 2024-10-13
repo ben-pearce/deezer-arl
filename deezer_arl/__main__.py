@@ -61,6 +61,12 @@ async def main():
         type=int,
         help='Number of seconds ARLs remain validated'
     )
+    parser_pull.add_argument(
+        '--max-arls',
+        default=0,
+        type=int,
+        help='Set the maximum number of ARLs to validate'
+    )
 
     parser_fetch = subparsers.add_parser('fetch', help='Fetch validated ARL')
     parser_fetch.add_argument(
@@ -167,7 +173,8 @@ async def main():
             ] if enabled],
             max_requests=args.requests_max_concurrent,
             sleep_timeout=args.requests_sleep_timeout,
-            cache_expiry=args.cache_expiry
+            cache_expiry=args.cache_expiry,
+            max_arls=args.max_arls
         )
 
     if args.command == 'provider':

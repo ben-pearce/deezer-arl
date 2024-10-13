@@ -72,7 +72,8 @@ class Validator:
         validators: typing.List[typing.Callable[dict, bool]],
         max_requests: int = 3,
         sleep_timeout: int = 5,
-        cache_expiry: int = 43200
+        cache_expiry: int = 43200,
+        max_arls:int = 0
     ) -> typing.Dict[str, typing.Dict]:
         now = datetime.now()
 
@@ -127,16 +128,13 @@ class Validator:
             return session
 
         with concurrent.futures.ThreadPoolExecutor() as pool:
-            arls = arls\
+            arls = list(arls\
                 .difference(set(validated.keys()))\
                 .difference(set(invalidated.keys()))\
-                .union(set(validated_expired.keys()))
+                .union(set(validated_expired.keys())))
 
-            logger.debug(
-                "Total ARLs to validate: %d, Total new ARLs: %d", 
-                len(arls),
-                len(arls) - len(validated_expired)
-            )
+            max_arls = max_arls if max_arls > 0 else len(arls)
+            arls = arls[0:max_arls]
 
             tasks = [loop.run_in_executor(pool, deezer_login, arl) for arl in arls]
             sessions = await asyncio.gather(*tasks)

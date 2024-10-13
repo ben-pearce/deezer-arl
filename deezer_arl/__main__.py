@@ -6,6 +6,7 @@ import re
 
 from deezer_arl import Scraper, Validator
 from deezer_arl.provider import Providers, Manager as ProviderManager
+from deezer_arl.consumer import Consumers
 
 logging.basicConfig(
     level=logging.INFO,
@@ -81,6 +82,24 @@ async def main():
         help='Find and update ARLs in file'
     )
 
+    parser_consume = subparsers.add_parser('consume', help='Specify an ARL consumer to use')
+    parser_consume.add_argument(
+        '-c', '--count', 
+        default=1,
+        type=int,
+        help="Number of unique ARLs to fetch"
+    )
+    parser_consume_type_subparser = parser_consume.add_subparsers(
+        required=True,
+        dest='consumer_type'
+    )
+    for option, consumer in Consumers.items():
+        parser_consume_type_subparser.add_parser(
+            option,
+            parents=[consumer.parser()],
+            add_help=False
+        )
+
     subparsers.add_parser('clean', help='Clean validated ARLs')
 
     parser_provider = subparsers.add_parser('provider', help='Manage ARL providers')
@@ -120,6 +139,16 @@ async def main():
     if args.command == 'clean':
         Validator.clean()
         logger.info('Wiped ARL validation cache')
+
+    if args.command == 'consume':
+        arls = Validator.fetch(args.count)
+
+        consumer_class = Consumers[args.consumer_type]
+        consumer_type_parser = parser_consume_type_subparser.choices[args.consumer_type]
+        consumer_type_args, _ = consumer_type_parser.parse_known_args()
+
+        consumer = consumer_class(**vars(consumer_type_args))
+        await consumer.consume(arls)
 
     if args.command == 'fetch':
         arls = Validator.fetch(args.count)

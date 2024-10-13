@@ -12,6 +12,7 @@ setup(
     install_requires=[
         'telethon==1.34.0', 
         'aiohttp==3.9.3', 
-        'deezer-py==1.3.7'
+        'deezer-py==1.3.7',
+        'jsonpath-ng==1.7.0'
     ]
 )

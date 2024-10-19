@@ -2,7 +2,7 @@ import typing
 import itertools
 import os
 import argparse
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from telethon import TelegramClient
 from telethon.tl.types import PeerChannel
@@ -60,7 +60,8 @@ class Telegram(Provider):
             corpus = str()
             async for message in client.iter_messages(
                 entity,
-                offset_date=timedelta(days=self.offset_days)
+                offset_date=datetime.today() - timedelta(days=self.offset_days),
+                reverse=True
             ):
                 if message.text is not None:
                     corpus += message.text + '\n'

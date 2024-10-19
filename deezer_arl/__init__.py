@@ -133,23 +133,24 @@ class Validator:
                 .difference(set(invalidated.keys()))\
                 .union(set(validated_expired.keys())))
 
-            max_arls = max_arls if max_arls > 0 else len(arls)
-            arls = arls[0:max_arls]
+            c = len([v for v in validated.values() if datetime.fromisoformat(v['expiry']) > now])
 
             tasks = [loop.run_in_executor(pool, deezer_login, arl) for arl in arls]
             sessions = await asyncio.gather(*tasks)
 
             for arl, session in zip(arls, sessions):
-                if all((predicate(session) for predicate in validators)):
-                    validated[arl] = {
-                        'validated': str(now),
-                        'expiry': str(now + timedelta(seconds=cache_expiry))
-                    }
-                else:
-                    validated.pop(arl, None)
-                    invalidated[arl] = {
-                        'expiry': str(now + timedelta(days=30))
-                    }
+                if max_arls == 0 or max_arls > c:
+                    if all((predicate(session) for predicate in validators)):
+                        validated[arl] = {
+                            'validated': str(now),
+                            'expiry': str(now + timedelta(seconds=cache_expiry))
+                        }
+                        c+=1
+                    else:
+                        validated.pop(arl, None)
+                        invalidated[arl] = {
+                            'expiry': str(now + timedelta(days=90))
+                        }
 
         logger.info(
             "Total ARLs validated: %d, Total ARLs invalidated: %d", 

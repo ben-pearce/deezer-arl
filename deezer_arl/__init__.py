@@ -7,6 +7,7 @@ import concurrent
 import os
 import json
 import logging
+import itertools
 from deezer import Deezer
 
 from deezer_arl.provider import\
@@ -125,7 +126,7 @@ class Validator:
 
             time.sleep(sleep_timeout)
             sem.release()
-            return session
+            return session, arl
 
         with concurrent.futures.ThreadPoolExecutor() as pool:
             arls = list(arls\
@@ -133,24 +134,32 @@ class Validator:
                 .difference(set(invalidated.keys()))\
                 .union(set(validated_expired.keys())))
 
-            c = len([v for v in validated.values() if datetime.fromisoformat(v['expiry']) > now])
+            validated = {
+                arl: v
+                for arl, v in validated.items()
+                if datetime.fromisoformat(v['expiry']) > now
+            }
 
-            tasks = [loop.run_in_executor(pool, deezer_login, arl) for arl in arls]
-            sessions = await asyncio.gather(*tasks)
+            if max_arls > len(validated):
+                tasks = [loop.run_in_executor(pool, deezer_login, arl) for arl in arls]
 
-            for arl, session in zip(arls, sessions):
-                if max_arls == 0 or max_arls > c:
+                for task in asyncio.as_completed(tasks):
+                    session, arl = await task
                     if all((predicate(session) for predicate in validators)):
                         validated[arl] = {
                             'validated': str(now),
                             'expiry': str(now + timedelta(seconds=cache_expiry))
                         }
-                        c+=1
                     else:
                         validated.pop(arl, None)
                         invalidated[arl] = {
                             'expiry': str(now + timedelta(days=90))
                         }
+
+                    if max_arls > 0 and max_arls == len(validated):
+                        for task in tasks:
+                            task.cancel()
+                        break
 
         logger.info(
             "Total ARLs validated: %d, Total ARLs invalidated: %d", 

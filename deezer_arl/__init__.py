@@ -140,7 +140,7 @@ class Validator:
                 if datetime.fromisoformat(v['expiry']) > now
             }
 
-            if max_arls > len(validated):
+            if max_arls == 0 or max_arls > len(validated):
                 tasks = [loop.run_in_executor(pool, deezer_login, arl) for arl in arls]
 
                 for task in asyncio.as_completed(tasks):
